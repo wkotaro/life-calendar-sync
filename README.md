@@ -39,7 +39,7 @@ launchd (毎朝6:00)
 ## 必要なもの
 
 - [gogcli](https://github.com/steipete/gogcli) -- Google Calendar操作
-- [Claude Code](https://claude.ai/code) (`claude` CLI) -- 情報収集
+- [Claude Code](https://claude.ai/code) (`claude` CLI) -- 情報収集（Max または有料プランが必要）
 - jq -- JSON処理
 - Googleアカウント（gogcli で認証済み）
 
@@ -65,28 +65,37 @@ Google Cloud Console で OAuth2 クレデンシャルを作成し、Calendar API
 
 ```bash
 cp config.example.json config.json
+chmod +x sync.sh add-category.sh
 ```
 
-`config.json` を開いて以下を編集する:
+`config.json` の `account` を gogcli で認証したメールアドレスに変更する:
 
-- `account`: gogcli で認証したメールアドレス
-- 各カテゴリの `calendar_id`: `add-category.sh` で自動作成される（下記参照）
-- 各カテゴリの `prompt`: Claude に渡す情報収集の指示
-- 各カテゴリの `summary_example`: カレンダーに表示される形式の例
+```json
+{
+  "account": "you@gmail.com",
+  "categories": {}
+}
+```
 
-最初のカテゴリは `add-category.sh` で追加するのが簡単:
+### 4. カテゴリを追加
+
+`add-category.sh` でカテゴリを追加する。Google カレンダーの作成と config.json への追記が自動で行われる。
 
 ```bash
-chmod +x sync.sh add-category.sh
-
 ./add-category.sh weather "天気予報" \
   "東京の今日から1週間分の天気予報\n- 日付、天気、最高気温、最低気温" \
   "晴れ 25℃/14℃ 東京"
 ```
 
-これで Google カレンダーが自動作成され、config.json にカテゴリが追加される。
+好きなだけカテゴリを追加できる:
 
-### 4. 動作確認
+```bash
+./add-category.sh public "公的手続き" \
+  "今日から3ヶ月以内に締切がある主要な行政手続き（税金等）\n- 該当するものだけ出力" \
+  "自動車税 納付期限"
+```
+
+### 5. 動作確認
 
 ```bash
 ./sync.sh
