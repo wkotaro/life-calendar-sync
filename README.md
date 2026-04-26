@@ -20,15 +20,17 @@ launchd (毎朝6:00)
 
 ## カテゴリ
 
-`config.json` で管理。カテゴリごとに専用のGoogleカレンダーが作られる。
+`config.json` で管理。カテゴリごとに専用のGoogleカレンダーが作られる。カテゴリは自由に追加できる。
+
+### 設定例
 
 | キー | 名前 | 内容 |
 |------|------|------|
-| weather | 天気予報 | 名古屋の1週間天気（気温付き） |
+| weather | 天気予報 | 1週間天気（気温付き） |
 | public | 公的手続き | 税金・選挙等の締切（3ヶ月先まで） |
-| events | 催事・イベント | 愛知県周辺の物産展等（1ヶ月先まで） |
+| events | 催事・イベント | 周辺の物産展等（1ヶ月先まで） |
 | sales | セール情報 | Amazon・楽天のセール（1ヶ月先まで） |
-| anime | アニメ更新日 | PrimeVideo配信スケジュール（1ヶ月先まで） |
+| anime | アニメ更新日 | 動画配信の更新スケジュール（1ヶ月先まで） |
 
 ## 必要なもの
 
@@ -39,19 +41,65 @@ launchd (毎朝6:00)
 
 ## セットアップ
 
+### 1. リポジトリをクローン
+
 ```bash
-# gogcli の認証
+git clone https://github.com/wkotaro/life-calendar-sync.git
+cd life-calendar-sync
+```
+
+### 2. gogcli の認証
+
+```bash
 gog auth credentials ~/Downloads/client_secret_....json
 gog auth add you@gmail.com
+```
 
-# 動作確認
+Google Cloud Console で OAuth2 クレデンシャルを作成し、Calendar API を有効化しておく。詳細は [gogcli の README](https://github.com/steipete/gogcli) を参照。
+
+### 3. config.json を作成
+
+```bash
+cp config.example.json config.json
+```
+
+`config.json` を開いて以下を編集する:
+
+- `account`: gogcli で認証したメールアドレス
+- 各カテゴリの `calendar_id`: `add-category.sh` で自動作成される（下記参照）
+- 各カテゴリの `prompt`: Claude に渡す情報収集の指示
+- 各カテゴリの `summary_example`: カレンダーに表示される形式の例
+
+最初のカテゴリは `add-category.sh` で追加するのが簡単:
+
+```bash
+chmod +x sync.sh add-category.sh
+
+./add-category.sh weather "天気予報" \
+  "東京の今日から1週間分の天気予報\n- 日付、天気、最高気温、最低気温" \
+  "晴れ 25℃/14℃ 東京"
+```
+
+これで Google カレンダーが自動作成され、config.json にカテゴリが追加される。
+
+### 4. 動作確認
+
+```bash
 ./sync.sh
 ```
 
-## 定期実行（launchd）
+初回実行には1-2分かかる（Claude Code による情報収集のため）。
+
+## 定期実行（macOS launchd）
+
+plist 内のパスを自分の環境に合わせて編集してからインストールする:
 
 ```bash
-# plist をインストール
+# plist 内のパスを書き換え（例: /Users/yourname/life-calendar-sync）
+sed -i '' "s|{{PROJECT_DIR}}|$(pwd)|g" com.lifesync.calendar.plist
+sed -i '' "s|{{HOME}}|$HOME|g" com.lifesync.calendar.plist
+
+# インストール
 cp com.lifesync.calendar.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.lifesync.calendar.plist
 
@@ -62,38 +110,29 @@ launchctl list | grep lifesync
 launchctl start com.lifesync.calendar
 ```
 
-## カテゴリの追加・削除
-
-Claude Code のスキルから操作できる:
-
-```
-/calendar-sync list      # 一覧表示
-/calendar-sync add       # カテゴリ追加
-/calendar-sync remove    # カテゴリ削除
-/calendar-sync sync      # 手動同期
-```
-
-またはシェルスクリプトで直接追加:
+## カテゴリの追加
 
 ```bash
 ./add-category.sh <キー> <名前> <プロンプト> <summary例>
 
 # 例
 ./add-category.sh sports "スポーツ" \
-  "名古屋グランパス・中日ドラゴンズの今後1ヶ月の試合日程" \
-  "グランパス vs 浦和 豊田スタジアム"
+  "今後1ヶ月の地元チームの試合日程" \
+  "チーム名 vs 対戦相手 スタジアム名"
 ```
+
+Googleカレンダーの作成と config.json への追記が自動で行われる。
 
 ## ファイル構成
 
 ```
 life-calendar-sync/
-  config.json                    # カテゴリ設定（カレンダーID・プロンプト）
-  sync.sh                        # メイン同期スクリプト
-  add-category.sh                # カテゴリ追加スクリプト
-  com.lifesync.calendar.plist    # launchd 定期実行設定
-  sync.log                       # 実行ログ
-  docs/prd/                      # 設計ドキュメント
+  config.example.json              # 設定テンプレート（コピーして config.json を作成）
+  config.json                      # カテゴリ設定（.gitignore 対象）
+  sync.sh                          # メイン同期スクリプト
+  add-category.sh                  # カテゴリ追加スクリプト
+  com.lifesync.calendar.plist      # launchd 定期実行設定
+  sync.log                         # 実行ログ（.gitignore 対象）
 ```
 
 ## ログ

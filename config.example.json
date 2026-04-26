@@ -1,17 +1,11 @@
 {
-  "account": "{{EMAIL}}",
+  "account": "you@gmail.com",
   "categories": {
     "weather": {
-      "name": "{{CATEGORY_NAME}}",
-      "calendar_id": "{{CALENDAR_ID}}",
-      "prompt": "{{PROMPT}}",
-      "summary_example": "晴れ 25℃/14℃ 名古屋"
-    },
-    "public": {
-      "name": "{{CATEGORY_NAME}}",
-      "calendar_id": "{{CALENDAR_ID}}",
-      "prompt": "{{PROMPT}}",
-      "summary_example": "自動車税 納付期限、参議院選挙 投票日"
+      "name": "天気予報",
+      "calendar_id": "YOUR_CALENDAR_ID@group.calendar.google.com",
+      "prompt": "東京の今日から1週間分の天気予報\n- 日付、天気、最高気温、最低気温",
+      "summary_example": "晴れ 25℃/14℃ 東京"
     }
   }
 }
