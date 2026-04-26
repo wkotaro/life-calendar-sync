@@ -1,0 +1,17 @@
+{
+  "account": "{{EMAIL}}",
+  "categories": {
+    "weather": {
+      "name": "{{CATEGORY_NAME}}",
+      "calendar_id": "{{CALENDAR_ID}}",
+      "prompt": "{{PROMPT}}",
+      "summary_example": "晴れ 25℃/14℃ 名古屋"
+    },
+    "public": {
+      "name": "{{CATEGORY_NAME}}",
+      "calendar_id": "{{CALENDAR_ID}}",
+      "prompt": "{{PROMPT}}",
+      "summary_example": "自動車税 納付期限、参議院選挙 投票日"
+    }
+  }
+}
