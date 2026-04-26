@@ -10,8 +10,29 @@
 - 「自動車税 納付期限まであと35日（6/1）」
 - 「初夏の大北海道物産展 松坂屋名古屋 今日から（〜5/11）」
 
+普段アウトドアに興味がないあなたにも:
+
+- 「モリコロパーク 春の大道芸フェスティバル 今週末（入場無料）」
+
 知ってれば行動できる。知らなければ逃す。
-heads-up は、そういう情報を毎朝カレンダーに届ける。
+heads-up は、あなたのプロフィールに基づいて**自分のフィルターの外にある情報**も含めて提案する。
+
+## プロフィール
+
+heads-up の特徴は、`config.json` に書いた自分のプロフィールに基づいてパーソナライズされること。
+
+```json
+{
+  "profile": "東京在住の30代。映画とカフェ巡りが好き。スポーツはあまり見ない。"
+}
+```
+
+このプロフィールがあると:
+
+- **あなたが好きそうな情報**: 映画公開日、カフェイベント
+- **普段は調べないけど知れば動くかもしれない情報**: 近くの公園のフリーマーケット、無料のスポーツ体験会
+
+「興味がない」と思い込んでいるだけで、知れば行きたくなるかもしれない。heads-up はそこも拾う。
 
 ## 仕組み
 
@@ -20,12 +41,12 @@ Claude Code（Sonnet）が情報を調べ、[gogcli](https://github.com/steipete
 ```
 毎朝6:00（launchd）
   -> sync.sh
-       -> Claude Code（情報収集 → JSON出力）
+       -> Claude Code（プロフィール + カテゴリで情報収集 → JSON出力）
        -> gogcli（カレンダー登録）
 ```
 
 1. 各カテゴリの既存予定を削除
-2. Claude Code にプロンプトを送り、情報をJSON形式で取得
+2. プロフィールとカテゴリのプロンプトをClaude Codeに送信
 3. カテゴリごとのGoogle Calendarに終日予定として登録
 4. 同日の重複は自動スキップ
 
@@ -77,14 +98,17 @@ cp config.example.json config.json
 chmod +x sync.sh add-category.sh
 ```
 
-`config.json` の `account` を gogcli で認証したメールアドレスに変更する:
+`config.json` を編集する:
 
 ```json
 {
   "account": "you@gmail.com",
+  "profile": "自分のことを自由に書く。住んでいる場所、趣味、興味、普段やらないこと。",
   "categories": {}
 }
 ```
+
+`profile` が heads-up のパーソナライズの鍵。具体的に書くほど、より的確な提案が届く。
 
 ### 4. カテゴリを追加
 
@@ -151,7 +175,7 @@ Google Calendarの作成と config.json への追記が自動で行われる。
 ```
 life-calendar-sync/
   config.example.json              # 設定テンプレート（コピーして config.json を作成）
-  config.json                      # カテゴリ設定（.gitignore 対象）
+  config.json                      # カテゴリ設定 + プロフィール（.gitignore 対象）
   sync.sh                          # メイン同期スクリプト
   add-category.sh                  # カテゴリ追加スクリプト
   com.lifesync.calendar.plist      # launchd 定期実行設定

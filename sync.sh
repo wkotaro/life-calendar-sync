@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Life Calendar Sync - 毎朝実行して公的情報をGoogleカレンダーに登録する
+# heads-up - 逃すと損する情報を毎朝カレンダーに届ける
 # 使い方: ./sync.sh
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -10,6 +10,7 @@ LOG_FILE="${SCRIPT_DIR}/sync.log"
 TODAY=$(date +%Y-%m-%d)
 
 ACCOUNT=$(jq -r '.account' "$CONFIG_FILE")
+PROFILE=$(jq -r '.profile // empty' "$CONFIG_FILE")
 CATEGORY_KEYS=$(jq -r '.categories | keys[]' "$CONFIG_FILE")
 
 log() {
@@ -37,7 +38,7 @@ clear_calendar() {
   fi
 }
 
-log "=== Life Calendar Sync 開始 ==="
+log "=== heads-up 開始 ==="
 
 # ステップ1: 全カレンダーの既存予定を削除
 log "既存予定を削除中..."
@@ -52,7 +53,18 @@ log "Claude Code で情報収集中..."
 
 PROMPT="あなたは情報収集アシスタントです。以下の情報を調べて、指定されたJSON形式で出力してください。
 余計な説明は一切不要です。JSONのみを出力してください。
+"
 
+if [ -n "$PROFILE" ]; then
+  PROMPT="${PROMPT}
+## この人のプロフィール
+${PROFILE}
+
+上記のプロフィールを踏まえて、この人が普段自分では調べなさそうだが、知れば「行ってみたい」「やってみたい」と思うかもしれない情報も積極的に含めてください。
+"
+fi
+
+PROMPT="${PROMPT}
 ## 調べる情報
 "
 
@@ -146,4 +158,4 @@ while IFS= read -r key; do
   TOTAL=$((TOTAL + count))
 done <<< "$CATEGORY_KEYS"
 
-log "=== Life Calendar Sync 完了 (合計 $TOTAL 件中 $SKIPPED 件重複スキップ, $((TOTAL - SKIPPED)) 件登録) ==="
+log "=== heads-up 完了 (合計 $TOTAL 件中 $SKIPPED 件重複スキップ, $((TOTAL - SKIPPED)) 件登録) ==="
